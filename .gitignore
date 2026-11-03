@@ -1,0 +1,21 @@
+# secrets and local state
+.env
+.env.*
+!.env.example
+*.db
+*.db-wal
+*.db-shm
+secret
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+# exports (may contain private dilemmas)
+*.jsonl
+!evalset/*.jsonl

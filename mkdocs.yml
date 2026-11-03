@@ -1,0 +1,14 @@
+site_name: ArtificialMoralAgent
+repo_url: https://github.com/tgreenhaw5/ArtificialMoralAgent
+theme: { name: material }
+nav:
+  - Home: ../README.md
+  - Get a Gemini key: gemini-key.md
+  - Self-hosting & demo: self-hosting.md
+  - REST API: api.md
+  - MCP: mcp.md
+  - Models: models.md
+  - Frameworks: frameworks.md
+  - Safety & limitations: safety.md
+  - Upgrading from 2.x: upgrading.md
+  - White paper: WHITE_PAPER.md

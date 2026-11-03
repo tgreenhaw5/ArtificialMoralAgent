@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>ArtificialMoralAgent | Multi-Perspective Ethical Reasoning</title>
+    <script>
+        // Ensure trailing slash for subfolder reverse-proxy hosting (e.g., /ama -> /ama/)
+        if (!window.location.pathname.endsWith('/') && !window.location.pathname.split('/').pop().includes('.')) {
+            window.location.replace(window.location.pathname + '/' + window.location.search + window.location.hash);
+        }
+    </script>
+    <link rel="stylesheet" href="static/style.css?v=3.0.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Marked.js for clean Markdown rendering fallback -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <!-- Password Login Modal (Shown when clicking Log In) -->
+    <div id="lock-overlay" class="lock-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="login-modal-title">
+        <div class="lock-card">
+            <button id="close-login-btn" class="lock-close-btn" aria-label="Close Login">&times;</button>
+            <div class="lock-icon">🔒</div>
+            <h2 id="login-modal-title" class="lock-title">Administrator Log In</h2>
+            <p class="lock-subtitle">Sign in to choose AI models, manage submitted dilemmas and create API keys.</p>
+            <input type="text" id="lock-user" class="lock-input" placeholder="User name" autocomplete="username" style="margin-bottom:10px">
+            <input type="password" id="lock-input" class="lock-input" placeholder="Password" autocomplete="current-password">
+            <button id="unlock-btn" class="glass-btn primary-btn lock-btn">Log In</button>
+            <div id="lock-error" class="lock-error">Invalid access key.</div>
+        </div>
+    </div>
+
+    <!-- Guest Submission Queued Pop-up Modal -->
+    <div id="guest-popup-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="guest-popup-title">
+        <div class="glass-modal guest-popup-card">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <span class="modal-icon">📬</span>
+                    <h2 id="guest-popup-title">Dilemma Submitted for Review</h2>
+                </div>
+                <button id="close-guest-popup-btn" class="modal-close-btn" aria-label="Close popup">&times;</button>
+            </div>
+            <div class="modal-content">
+                <p style="font-size: 1.05rem; color: #e2e8f0;">
+                    Thank you! Your moral dilemma has been safely stored in our database queue.
+                </p>
+                <div class="info-block" style="border-left: 4px solid var(--accent-cyan);">
+                    <div class="info-block-title">Check Back Later</div>
+                    <p style="color: var(--text-muted);">
+                        Our administrators review and evaluate submitted dilemmas across our four ethical frameworks (Utilitarianism, Deontology, Care Ethics, and the 6-Sage Virtue Council). Please check back later in the <strong>Dilemma Knowledge Base</strong> below to see your dilemma processed!
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="guest-popup-ok-btn" class="glass-btn primary-btn">Got It, Check Back Later</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liquid Background Elements -->
+    <div class="liquid-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="glass-header">
+            <div class="header-top-row">
+                <div class="logo-container" id="home-logo-btn" style="cursor: pointer;" title="Return to Main View">
+                    <div class="logo-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1>Artificial Moral Agent</h1>
+                        <p class="subtitle">Multi-Perspective Ethical Reasoning &amp; Decision Support</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <!-- Visible only to logged-in users: Toggle between Main Workspace and Submitted Dilemmas Review Screen -->
+                    <button id="review-screen-btn" class="glass-btn secondary-btn hidden" aria-label="Submitted Dilemmas Queue">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 11l3 3L22 4"></path>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        </svg>
+                        <span id="review-screen-btn-label">Submitted Dilemmas</span>
+                        <span id="pending-count-badge" class="pending-badge hidden">0</span>
+                    </button>
+
+                    <button id="kb-nav-btn" class="glass-btn secondary-btn" aria-label="Knowledge Base">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                        </svg>
+                        <span>Dilemma Knowledge Base</span>
+                    </button>
+
+                    <button id="about-btn" class="glass-btn secondary-btn" aria-label="About Artificial Moral Agent">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        <span>About</span>
+                    </button>
+
+                    <!-- Public Log In Button (shown when guest) -->
+                    <button id="login-open-btn" class="glass-btn primary-btn" aria-label="Log In">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                            <polyline points="10 17 15 12 10 7"></polyline>
+                            <line x1="15" y1="12" x2="3" y2="12"></line>
+                        </svg>
+                        <span>Log In</span>
+                    </button>
+
+                    <!-- Logged-in Log Out Button -->
+                    <button id="lock-btn" class="glass-btn secondary-btn hidden" aria-label="Log Out">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <span>Log Out</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- ADMIN REVIEW SCREEN (Only visible to logged-in users when toggled) -->
+        <section id="submissions-screen" class="glass-card submissions-screen hidden">
+            <div class="submissions-header">
+                <div>
+                    <h2>📋 Submitted Moral Dilemmas Review Queue</h2>
+                    <p class="repo-subtitle">Review guest-submitted dilemmas, run full 4-framework AI evaluations, or mark items as done.</p>
+                </div>
+                <div class="submissions-controls">
+                    <div class="filter-group">
+                        <button id="filter-all-btn" class="glass-btn small-btn active-filter">All</button>
+                        <button id="filter-pending-btn" class="glass-btn small-btn">Pending Only</button>
+                        <button id="filter-done-btn" class="glass-btn small-btn">Done Only</button>
+                    </div>
+                    <button id="back-to-main-btn" class="glass-btn secondary-btn small-btn">
+                        &larr; Back to Main Workspace
+                    </button>
+                </div>
+            </div>
+
+            <div id="submissions-table-container" class="submissions-list">
+                <!-- Populated dynamically via JS -->
+            </div>
+        </section>
+
+        <!-- Main Workspace -->
+        <main id="main-workspace" class="main-content">
+            <!-- Dilemma Input Card -->
+            <section class="glass-card input-card">
+                <div class="card-header">
+                    <div>
+                        <h2 id="input-card-title">Submit Moral Dilemma</h2>
+                        <p id="guest-mode-hint" class="repo-subtitle">Submit a dilemma to our public queue, or log in to evaluate immediately.</p>
+                    </div>
+                    <!-- Model pull-down ONLY visible to logged-in users -->
+                    <div id="model-select-wrapper" class="model-select-wrapper hidden">
+                        <label for="model-select" class="model-select-label">Model:</label>
+                        <select id="model-select" class="glass-select" aria-label="Select AI Model">
+                            <option value="gemini-3.5-flash-lite" selected>gemini-3.5-flash-lite</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-wrapper">
+                    <textarea id="dilemma-input" placeholder="Enter a complex moral dilemma (e.g., An autonomous vehicle must choose between swerving to hit one pedestrian or staying its course and harming five passengers... or a whistleblower discovering company malfeasance that protects jobs...)" rows="4"></textarea>
+                </div>
+                <div class="action-row">
+                    <button id="submit-btn" class="glass-btn primary-btn">
+                        <span id="submit-btn-text">Submit Moral Dilemma</span>
+                        <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Loading Spinner Container -->
+            <div id="loading-spinner" class="glass-card spinner-card hidden">
+                <div class="liquid-spinner"></div>
+                <p id="loading-text" class="loading-text">Executing 2-Stage Directed Acyclic Graph: Concurrently querying Utilitarianism, Deontology, Relational Care Ethics &amp; the 6-Sage Council with Conviction Weights...</p>
+            </div>
+
+            <!-- Crisis Triage Banner Container -->
+            <div id="crisis-alert" class="glass-card crisis-card hidden">
+                <!-- Injected via JavaScript -->
+            </div>
+
+            <!-- Analysis Results Grid -->
+            <section id="results-section" class="results-container hidden">
+                <!-- Final Verdict Card (Front and Center) -->
+                <div class="glass-card verdict-card">
+                    <div class="verdict-header">
+                        <span class="verdict-icon">⚖️</span>
+                        <div>
+                            <h2>Chief Moral Arbiter Verdict</h2>
+                            <div class="verdict-badges-row">
+                                <span id="verdict-model-badge" class="badge-model">gemini-3.5-flash-lite</span>
+                                <span id="verdict-cached-badge" class="badge-cached hidden">⚡ Retrieved from Database (Cached)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="verdict-body" id="verdict-res"></div>
+                    <div class="verdict-feedback-row">
+                        <span class="feedback-label">Was this ethical analysis helpful?</span>
+                        <div class="feedback-buttons">
+                            <button id="thumb-up-btn" class="feedback-btn" aria-label="Helpful" title="Helpful">👍</button>
+                            <button id="thumb-down-btn" class="feedback-btn" aria-label="Unhelpful" title="Unhelpful">👎</button>
+                            <span id="feedback-ack" class="feedback-ack hidden">Thank you for your feedback!</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title">
+                    <h2>Four Ethical Framework Evaluations</h2>
+                </div>
+
+                <div class="frameworks-grid">
+                    <!-- Utilitarianism Card -->
+                    <div class="glass-card framework-card utilitarian">
+                        <div class="framework-header">
+                            <div class="framework-title-group">
+                                <span class="framework-icon">📊</span>
+                                <h3>Utilitarianism &amp; Felicific Calculus</h3>
+                            </div>
+                            <div id="utilitarian-badge" class="score-badge"></div>
+                        </div>
+                        <div class="framework-body" id="utilitarian-res"></div>
+                    </div>
+
+                    <!-- Deontology Card -->
+                    <div class="glass-card framework-card deontology">
+                        <div class="framework-header">
+                            <div class="framework-title-group">
+                                <span class="framework-icon">📜</span>
+                                <h3>Deontology &amp; Categorical Imperatives</h3>
+                            </div>
+                            <div id="deontology-badge" class="score-badge"></div>
+                        </div>
+                        <div class="framework-body" id="deontology-res"></div>
+                    </div>
+
+                    <!-- Virtue Ethics Card -->
+                    <div class="glass-card framework-card virtue">
+                        <div class="framework-header">
+                            <div class="framework-title-group">
+                                <span class="framework-icon">🏛️</span>
+                                <h3>Virtue Ethics &amp; 6-Sage Council</h3>
+                            </div>
+                            <div id="virtue-badge" class="score-badge"></div>
+                        </div>
+                        <div class="framework-body" id="virtue-res"></div>
+                    </div>
+
+                    <!-- Care Ethics Card -->
+                    <div class="glass-card framework-card care">
+                        <div class="framework-header">
+                            <div class="framework-title-group">
+                                <span class="framework-icon">🤝</span>
+                                <h3>Care Ethics &amp; Relational Morality</h3>
+                            </div>
+                            <div id="care-badge" class="score-badge"></div>
+                        </div>
+                        <div class="framework-body" id="care-res"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dilemma Repository & Semantic Search Section -->
+            <section id="knowledge-base" class="glass-card repository-card">
+                <div class="repository-header">
+                    <div>
+                        <h2>Dilemma Knowledge Base</h2>
+                        <p class="repo-subtitle">Semantic memory powered by PostgreSQL PGVector (768d HNSW index)</p>
+                    </div>
+                    <div class="search-box glass-input">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" id="search-input" placeholder="Semantic search across dilemmas...">
+                        <button id="search-btn" class="glass-btn small-btn">Search</button>
+                    </div>
+                </div>
+
+                <div id="dilemma-list" class="dilemma-list">
+                    <!-- Dynamic List of Evaluated Dilemmas -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="glass-footer">
+            <p id="ama-disclaimer" class="ama-disclaimer"><strong>Decision support, not an authority.</strong> ArtificialMoralAgent offers structured ethical analysis to inform a human decision. It is not legal, medical, psychological or other professional advice, and its frameworks and language models have known limitations and biases. If you or someone else is in danger, contact emergency services (911 in the USA) or call or text 988.</p>
+            <p>&copy; 2026 ArtificialMoralAgent • Apache-2.0 open source • <a href="help/gemini-key" class="ama-link">Get a free Gemini key</a> • <a href="docs" class="ama-link">API</a> • <a href="https://github.com/tgreenhaw5/ArtificialMoralAgent" class="ama-link" rel="noopener">GitHub</a></p>
+        </footer>
+    </div>
+
+    <!-- "About" Modal Dialog -->
+    <div id="about-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="about-modal-title">
+        <div class="glass-modal">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <span class="modal-icon">ℹ️</span>
+                    <h2 id="about-modal-title">About the Artificial Moral Agent</h2>
+                </div>
+                <button id="close-modal-btn" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+            </div>
+            <div class="modal-content">
+                <section class="modal-section">
+                    <h3>1. System Mission &amp; Overview</h3>
+                    <p>
+                        The <strong>Artificial Moral Agent (AMA)</strong> is a state-of-the-art computational ethics and philosophical decision-support platform. Rather than offering simplistic rule-following or biased single-perspective judgments, the AMA simultaneously interrogates complex human moral dilemmas across four monumental ethical traditions and synthesizes an authoritative ruling via a Chief Moral Arbiter.
+                    </p>
+                </section>
+
+                <section class="modal-section">
+                    <h3>2. The Four Ethical Frameworks</h3>
+                    <div class="about-grid">
+                        <div class="about-card">
+                            <h4>📊 Extended Utilitarianism</h4>
+                            <p><strong>Jeremy Bentham &amp; John Stuart Mill</strong></p>
+                            <p>Computes net expected moral utility using an extended Felicific Calculus: <code>V = D &times; N &times; T &times; P</code>, factoring Degree of pleasure/pain ($D$), Entities impacted ($N$), Duration ($T$), and Probability ($P$). Assigns a conviction weight based on outcome certainty and welfare differential.</p>
+                        </div>
+                        <div class="about-card">
+                            <h4>📜 Deontological Ethics</h4>
+                            <p><strong>Immanuel Kant</strong></p>
+                            <p>Evaluates duty integrity through Kant's Categorical Imperatives: Universal Law, the Formula of Humanity (treating persons as ends, never merely as means), and the Kingdom of Ends. Distinguishes <em>Perfect Duties</em> from <em>Imperfect Duties</em> and assigns a conviction weight based on rights sanctity.</p>
+                        </div>
+                        <div class="about-card">
+                            <h4>🤝 Care Ethics &amp; Relational Morality</h4>
+                            <p><strong>Carol Gilligan &amp; Nel Noddings</strong></p>
+                            <p>Focuses on relational empathy, interdependence, and protection of the vulnerable. It audits emotional resonance, dependency needs, trauma mitigation, and human trust, assigning a conviction weight based on relational harm prevention.</p>
+                        </div>
+                        <div class="about-card">
+                            <h4>🏛️ Virtue Ethics &amp; The 6-Sage Council</h4>
+                            <p><strong>Aristotelian, Eastern, and Global Sages</strong></p>
+                            <p>Convenes an esteemed panel of six philosophical perspectives: <strong>Inspired by Jesus</strong> (Agape &amp; Mercy), <strong>Inspired by Confucius</strong> (Ren &amp; Li), <strong>Inspired by Mohammed</strong> (Adl &amp; Amanah), <strong>Inspired by Buddha</strong> (Ahimsa &amp; Karuna), <strong>Inspired by Abraham Lincoln</strong> (Moral Fortitude &amp; Liberty), and <strong>Inspired by Aristotle</strong> (Phronesis &amp; Golden Mean). Sages cast structured votes and provide a council conviction weight.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="modal-section">
+                    <h3>3. The Chief Moral Arbiter &amp; Weighted Conviction Blend</h3>
+                    <p>
+                        The <strong>Chief Moral Arbiter</strong> adjudicates using a <strong>Weighted Conviction Blend</strong> (replacing rigid lexical priorities):
+                    </p>
+                    <ul style="margin-top:0.5rem; margin-left: 1.2rem; line-height: 1.6; color: var(--text-muted);">
+                        <li><strong>Scoring Mechanism</strong>: Each ethical framework dictates a recommended action backed by a 1–10 Conviction Weight.</li>
+                        <li><strong>High Conviction Alignment</strong>: When all frameworks hold high conviction for a consistent course of action, the collective moral duty is decisively summarized in plain English.</li>
+                        <li><strong>Conflicting Courses of Action</strong>: If frameworks disagree, actions are prioritized and sorted by aggregated conviction weights to identify the majority response, while explicitly presenting alternate perspectives from dissenting frameworks for greater nuance.</li>
+                        <li><strong>Plain English Mandate</strong>: All verdicts, explanations, and actionable guidance steps are strictly communicated in clear, accessible plain English.</li>
+                    </ul>
+                </section>
+
+                <section class="modal-section">
+                    <h3>4. Public Queue &amp; Multi-Model Architecture</h3>
+                    <ul>
+                        <li><strong>Public Guest Submissions</strong>: Visitors can explore the Dilemma Knowledge Base and submit new moral dilemmas to the review queue. Logged-in administrators can evaluate queued submissions and select cognitive substrates.</li>
+                        <li><strong>Vector Memory &amp; Indexing</strong>: PostgreSQL with <code>pgvector</code> storing 768-dimensional dense embeddings (via <code>gemini-embedding-001</code>) with high-speed HNSW indexing.</li>
+                        <li><strong>Safety Triage Pre-Flight</strong>: Automatically screens inputs for acute emergencies (self-harm, domestic violence, imminent assault) and serves immediate crisis hotline resources.</li>
+                    </ul>
+                </section>
+
+                <section class="modal-section disclaimer-section">
+                    <h3>⚠️ Philosophical Decision Support Disclaimer</h3>
+                    <p>
+                        The Artificial Moral Agent is intended solely for philosophical reflection, pedagogical inquiry, and moral decision support. It does not provide legal advice, medical counsel, psychiatric therapy, or emergency crisis intervention.
+                    </p>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-ok-btn" class="glass-btn primary-btn">Understood</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Return to Top Button -->
+    <button id="return-to-top-btn" class="floating-top-btn hidden" aria-label="Return to Top">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+    </button>
+
+    <script src="static/ama-extras.js?v=3.0.0"></script>
+    <script src="static/app.js?v=3.0.0"></script>
+</body>
+</html>

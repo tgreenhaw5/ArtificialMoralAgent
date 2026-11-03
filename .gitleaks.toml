@@ -1,0 +1,6 @@
+title = "ArtificialMoralAgent secret scan"
+[extend]
+useDefault = true
+[allowlist]
+description = "test fixtures and examples"
+paths = ['''tests/''', '''\.env\.example''']

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Get a free Gemini API key · ArtificialMoralAgent</title>
+<link rel="stylesheet" href="../static/style.css?v=3.0.0">
+<style>
+  .help-wrap { max-width: 760px; margin: 40px auto; padding: 0 16px; }
+  .help-card { padding: 28px 32px; }
+  .help-card h1 { font-size: 1.6rem; margin: 0 0 6px; }
+  .help-card ol { line-height: 1.7; padding-left: 1.3rem; }
+  .help-card li { margin: 8px 0; }
+  .help-card code { background: rgba(127,127,127,.18); padding: 1px 6px; border-radius: 4px; }
+  .help-note { margin-top: 18px; padding: 12px 14px; border-radius: 10px; background: rgba(255,193,7,.14); }
+  .help-actions { margin-top: 22px; display: flex; gap: 10px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div class="app-container help-wrap">
+  <div class="glass-panel help-card">
+    <h1>Get a free Gemini API key</h1>
+    <p>ArtificialMoralAgent uses Google's Gemini Flash-Lite by default. A free key takes about two minutes and no credit card.</p>
+    <ol>
+      <li>Open <a class="ama-link" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> and sign in with a Google account.</li>
+      <li>The first time, accept the Gemini API terms. The marketing checkbox is optional.</li>
+      <li>Click <strong>Create API key</strong>. If asked, choose <em>Create API key in new project</em>.</li>
+      <li>Copy the key straight away; it is shown in full only once. Keep it private, like a password.</li>
+      <li>On the computer running ArtificialMoralAgent, run <code>ama init</code> and paste the key when asked.
+          (Or add <code>GEMINI_API_KEY=your-key</code> to <code>~/.ama/.env</code>.) Then restart <code>ama serve</code>.</li>
+      <li>Check it with <code>ama doctor</code>: the <em>model reachable</em> and <em>embeddings</em> lines should say PASS.</li>
+    </ol>
+    <div class="help-note">
+      <strong>Privacy on the free tier:</strong> Google may use data sent through free-tier keys to improve its products.
+      Avoid putting confidential or identifying details into dilemmas while using a free key, or use a paid key, or
+      the <em>local</em> preset with Ollama, where nothing leaves your computer. Free-tier use is rate-limited, not billed.
+    </div>
+    <div class="help-actions">
+      <a class="glass-btn primary-btn" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Open Google AI Studio</a>
+      <a class="glass-btn" href="../">Back to ArtificialMoralAgent</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

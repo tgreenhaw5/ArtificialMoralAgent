@@ -1,0 +1,22 @@
+# docker compose up -d   ->  http://localhost:8410   (set GEMINI_API_KEY in a .env file next to this one)
+services:
+  ama:
+    build: { context: ., dockerfile: docker/Dockerfile }
+    ports: ["8410:8410"]
+    environment:
+      AMA_DATABASE_URL: postgresql://ama:ama@db:5432/ama
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      AMA_PUBLIC_DEMO: ${AMA_PUBLIC_DEMO:-false}
+    volumes: ["ama-home:/home/ama/.ama"]
+    depends_on: { db: { condition: service_healthy } }
+  db:
+    image: pgvector/pgvector:pg16
+    environment: { POSTGRES_USER: ama, POSTGRES_PASSWORD: ama, POSTGRES_DB: ama }
+    volumes: ["ama-db:/var/lib/postgresql/data"]
+    healthcheck: { test: ["CMD", "pg_isready", "-U", "ama"], interval: 5s, retries: 10 }
+  # Optional local models:  docker compose --profile local up -d   and set AMA_MODEL=ollama_chat/<model>
+  ollama:
+    image: ollama/ollama
+    profiles: ["local"]
+    volumes: ["ollama:/root/.ollama"]
+volumes: { ama-home: {}, ama-db: {}, ollama: {} }

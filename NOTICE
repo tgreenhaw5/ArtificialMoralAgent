@@ -1,0 +1,8 @@
+ArtificialMoralAgent
+Copyright 2025-2026 The ArtificialMoralAgent authors
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Uses, but does not include: FastAPI (MIT), Uvicorn (BSD-3), Pydantic (MIT), LiteLLM (MIT), MCP Python SDK (MIT),
+sqlite-vec (MIT/Apache-2.0), python-dotenv (BSD-3), httpx (BSD-3), psycopg2 (LGPL-3.0, optional),
+pgvector (PostgreSQL License, server extension), marked (MIT, loaded by the web UI).
