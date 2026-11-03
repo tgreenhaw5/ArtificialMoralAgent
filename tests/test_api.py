@@ -94,3 +94,17 @@ def test_wrong_password_and_headers(ama_env):
     assert c.post("/api/v1/auth/login", json={"user": "admin", "password": "nope-nope-nope"}).status_code == 401
     assert c.get("/health").headers["x-content-type-options"] == "nosniff"
     assert c.get("/api/submissions").status_code == 401
+
+
+def test_delete_from_review_queue(ama_env):
+    c = TestClient(ama_env())
+    guest = TestClient(c.app)
+    queued = guest.post("/api/dilemmas", json={"dilemma_text": TEXT}).json()
+    h = admin(c)
+    done = c.post("/api/dilemmas", headers=h, json={"dilemma_text": TEXT + " Twice."}).json()
+    assert guest.delete(f"/api/submissions/{queued['id']}").status_code == 401      # guests cannot delete
+    assert c.delete(f"/api/submissions/{queued['id']}", headers=h).json() == {"deleted": queued["id"]}
+    assert c.delete(f"/api/v1/dilemmas/{done['id']}", headers=h).status_code == 200  # evaluated ones too
+    assert c.get("/api/submissions", headers=h).json() == []
+    assert c.get("/api/v1/search", params={"q": TEXT}).json() == []                 # vector gone as well
+    assert c.delete(f"/api/submissions/{queued['id']}", headers=h).status_code == 404

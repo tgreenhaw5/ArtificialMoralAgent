@@ -541,6 +541,9 @@ document.addEventListener("DOMContentLoaded", () => {
                             👁️ View Verdict
                         </button>
                     ` : ""}
+                    <button class="glass-btn btn-danger small-btn row-delete-btn" title="Delete this dilemma permanently">
+                        🗑 Delete
+                    </button>
                 </div>
             `;
 
@@ -548,6 +551,44 @@ document.addEventListener("DOMContentLoaded", () => {
             const evalBtn = row.querySelector(".row-eval-btn");
             const doneBtn = row.querySelector(".row-done-btn");
             const viewBtn = row.querySelector(".row-view-btn");
+            const deleteBtn = row.querySelector(".row-delete-btn");
+
+            // Two-step delete: the first click asks for confirmation (no browser pop-up), the second deletes.
+            let deleteArmTimer = null;
+            deleteBtn.addEventListener("click", async () => {
+                if (!deleteBtn.classList.contains("armed")) {
+                    deleteBtn.classList.add("armed");
+                    deleteBtn.textContent = "Confirm delete?";
+                    deleteArmTimer = setTimeout(() => {
+                        deleteBtn.classList.remove("armed");
+                        deleteBtn.textContent = "🗑 Delete";
+                    }, 4000);
+                    return;
+                }
+                clearTimeout(deleteArmTimer);
+                deleteBtn.disabled = true;
+                deleteBtn.textContent = "Deleting...";
+                try {
+                    const res = await fetch(getApiUrl(`/api/submissions/${item.id}`), {
+                        method: "DELETE",
+                        headers: getAuthHeaders()
+                    });
+                    if (!res.ok) {
+                        let msg = "Delete failed.";
+                        try { msg = (await res.json()).detail || msg; } catch (_) {}
+                        throw new Error(msg);
+                    }
+                    if (currentDilemmaId === item.id) currentDilemmaId = null;
+                    row.remove();
+                    await fetchSubmissions();
+                    await fetchDilemmas();
+                } catch (e) {
+                    alert(e.message);
+                    deleteBtn.disabled = false;
+                    deleteBtn.classList.remove("armed");
+                    deleteBtn.textContent = "🗑 Delete";
+                }
+            });
 
             evalBtn.addEventListener("click", async () => {
                 const chosenModel = rowModelSelect.value || "gemini-3.5-flash-lite";

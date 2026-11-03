@@ -169,6 +169,11 @@ class SQLiteStore(Store):
             out.append(d)
         return out
 
+    def delete(self, dilemma_id):
+        with self._lock:
+            self.conn.execute("DELETE FROM dilemma_vectors WHERE id=?", (dilemma_id,))
+            return self.conn.execute("DELETE FROM dilemmas WHERE id=?", (dilemma_id,)).rowcount > 0
+
     def count(self):
         r = self._x("""SELECT count(*) n, sum(status='pending') p, sum(published=1 AND status='done') pub
                        FROM dilemmas""").fetchone()

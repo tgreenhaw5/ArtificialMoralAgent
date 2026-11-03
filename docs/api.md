@@ -17,6 +17,7 @@ includes `general_disclaimer`. If the safety triage flags a crisis, the response
 | `POST /api/v1/feedback/{id}` `{rating: 1 or -1}` | Helpful / not helpful | public (rate-limited) |
 | `GET /api/v1/frameworks` · `GET /api/v1/config` · `GET /api/v1/health` | Info | public |
 | `GET/POST /api/v1/submissions…` · `POST /api/v1/dilemmas/{id}/publish` | Review queue, publishing | signed in |
+| `DELETE /api/v1/submissions/{id}` (or `/api/v1/dilemmas/{id}`) | Delete a dilemma permanently | signed in |
 | `GET/POST/DELETE /api/v1/keys` | API keys | signed in |
 
 The fields of an evaluation are a stable contract within v1:

@@ -1,5 +1,15 @@
 # Changes
 
+## 3.0.1 (2026-11-02)
+
+- **Delete from the review queue.** Each entry in *Submitted Moral Dilemmas* now has a **Delete** button.
+  The first click asks for confirmation, and the second permanently removes the dilemma, its analysis and
+  its search vector. It works for pending and evaluated entries and is available to signed-in admins only.
+  - API: `DELETE /api/v1/submissions/{id}` (also `/api/v1/dilemmas/{id}` and the 2.x path
+    `/api/submissions/{id}`).
+- **Gemini key help** now follows Google AI Studio's current steps ("Get API key", then "Create API key"),
+  with notes on cost, limits and free-tier privacy, plus a link to a video guide.
+
 ## 3.0.0 (2026-11-02): first open-source release
 
 ArtificialMoralAgent is now an installable package (`pip install artificialmoralagent`), licensed under

@@ -164,6 +164,9 @@ class PostgresStore(Store):
             out.append(d)
         return out
 
+    def delete(self, dilemma_id):
+        return self._q("DELETE FROM dilemmas WHERE id=%s", (dilemma_id,), fetch=None) > 0
+
     def count(self):
         r = self._q("""SELECT count(*) n, count(*) FILTER (WHERE status='pending') p,
                        count(*) FILTER (WHERE published AND status='done') pub FROM dilemmas""", fetch="one")

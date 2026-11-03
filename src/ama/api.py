@@ -420,6 +420,16 @@ def _routes(app: FastAPI):
             raise HTTPException(404, "Not found.")
         return public(out)
 
+    @app.delete("/api/v1/submissions/{dilemma_id}")
+    @app.delete("/api/submissions/{dilemma_id}")
+    @app.delete("/api/v1/dilemmas/{dilemma_id}")
+    def delete_dilemma(dilemma_id: str, who=Depends(require_auth)):
+        """Permanently remove a dilemma (pending or evaluated), its analysis and its vector."""
+        if not get_store().delete(dilemma_id):
+            raise HTTPException(404, "Not found.")
+        log.info("dilemma %s deleted by %s", dilemma_id, who.get("name") or who.get("kind"))
+        return {"deleted": dilemma_id}
+
     @app.post("/api/v1/dilemmas/{dilemma_id}/publish")
     def publish(dilemma_id: str, published: bool = True, who=Depends(require_auth)):
         out = get_store().update(dilemma_id, {"published": published})

@@ -1255,3 +1255,8 @@ body {
   background: rgba(20, 24, 33, 0.92); color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.3); font-size: 0.92rem; }
 .ama-notice button { background: none; border: 0; color: #fff; font-size: 1.3rem; cursor: pointer; }
 .ama-notice code { background: rgba(255,255,255,.15); padding: 0 5px; border-radius: 4px; }
+
+/* Delete button in the review queue (3.0.1) */
+.glass-btn.btn-danger { color: #ff8a80; border-color: rgba(255, 82, 82, 0.45); }
+.glass-btn.btn-danger:hover { background: rgba(255, 82, 82, 0.14); border-color: rgba(255, 82, 82, 0.8); }
+.glass-btn.btn-danger.armed, .glass-btn.btn-danger.armed:hover { background: rgba(255, 82, 82, 0.85); color: #fff; border-color: transparent; }

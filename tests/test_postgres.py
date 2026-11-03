@@ -28,3 +28,5 @@ def test_postgres_backend_end_to_end(ama_env):
     assert any(x["id"] == r["id"] and len(x["embedding"]) == 768 for x in rows)
     st.log_usage("2026-01-02", "ip:x", "demo_eval", 0.5)
     assert st.usage_day("2026-01-02", kind="demo_eval")[1] >= 0.5
+    assert c.delete(f"/api/v1/submissions/{r['id']}", headers=h).status_code == 200
+    assert st.get(r["id"]) is None and c.delete(f"/api/v1/submissions/{r['id']}", headers=h).status_code == 404
