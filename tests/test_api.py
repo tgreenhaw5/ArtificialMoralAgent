@@ -20,7 +20,7 @@ def test_health_config_frameworks(ama_env):
     assert cfg["public_demo"] is False and cfg["disclaimer"] and cfg["default_model"].startswith("gemini/")
     assert {f["key"] for f in c.get("/api/v1/frameworks").json()} >= {"utilitarianism", "arbiter"}
     assert c.get("/").status_code == 200 and c.get("/help/gemini-key").status_code == 200
-    assert "aistudio.google.com/apikey" in c.get("/help/gemini-key").text
+    assert "aistudio.google.com/app/apikey" in c.get("/help/gemini-key").text
 
 
 def test_guest_queued_without_demo(ama_env):

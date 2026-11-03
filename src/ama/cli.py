@@ -21,13 +21,17 @@ import sys
 from pathlib import Path
 
 GEMINI_HELP = """
-How to get a free Google Gemini API key (about 2 minutes, no credit card):
-  1. Open https://aistudio.google.com/apikey and sign in with a Google account.
-  2. Accept the terms the first time (the marketing checkbox is optional).
-  3. Click "Create API key" (choose "in a new project" if asked) and copy the key. It is shown once.
-  4. Paste it below. It is stored only on this computer, in {env}.
-Free-tier note: Google may use data sent on the free tier to improve its products, so don't paste
-confidential details into dilemmas while using a free key. Free-tier use is rate-limited, not billed.
+Get a free Gemini API key (about a minute, no credit card):
+  1. Sign in: go to https://aistudio.google.com/app/apikey and sign in with your Google account.
+  2. Accept the terms: the first time, accept the terms of service.
+  3. Create a key: click "Get API key" in the sidebar or top menu, then "Create API key".
+  4. Copy it and paste it below. It is stored only on this computer, in {env}.
+Good to know:
+  - Cost: free; the free tier needs no credit card or billing account.
+  - Limits: per-minute and daily limits, meant for prototyping and testing, not heavy production use.
+  - Privacy: Google may use free-tier inputs and outputs to improve its models, so avoid sensitive or
+    private details in dilemmas while using a free key.
+  Video guide: https://www.youtube.com/watch?v=prrb0hsfI60
 """
 
 

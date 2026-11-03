@@ -12,6 +12,9 @@
   .help-card li { margin: 8px 0; }
   .help-card code { background: rgba(127,127,127,.18); padding: 1px 6px; border-radius: 4px; }
   .help-note { margin-top: 18px; padding: 12px 14px; border-radius: 10px; background: rgba(255,193,7,.14); }
+  .help-h2 { font-size: 1.05rem; margin: 22px 0 4px; }
+  .help-list { line-height: 1.7; padding-left: 1.3rem; }
+  .help-video { margin-top: 16px; }
   .help-actions { margin-top: 22px; display: flex; gap: 10px; flex-wrap: wrap; }
 </style>
 </head>
@@ -19,24 +22,35 @@
 <div class="app-container help-wrap">
   <div class="glass-panel help-card">
     <h1>Get a free Gemini API key</h1>
-    <p>ArtificialMoralAgent uses Google's Gemini Flash-Lite by default. A free key takes about two minutes and no credit card.</p>
+    <p>ArtificialMoralAgent uses Google's Gemini Flash-Lite by default. You can get a free key in about a minute,
+       with no credit card, from <a class="ama-link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a>.</p>
+    <h2 class="help-h2">How to get it</h2>
     <ol>
-      <li>Open <a class="ama-link" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> and sign in with a Google account.</li>
-      <li>The first time, accept the Gemini API terms. The marketing checkbox is optional.</li>
-      <li>Click <strong>Create API key</strong>. If asked, choose <em>Create API key in new project</em>.</li>
-      <li>Copy the key straight away; it is shown in full only once. Keep it private, like a password.</li>
+      <li><strong>Sign in:</strong> go to <a class="ama-link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a> and sign in with your Google account.</li>
+      <li><strong>Accept the terms:</strong> the first time, accept the terms of service.</li>
+      <li><strong>Create a key:</strong> click <strong>Get API key</strong> in the sidebar or top menu, then click <strong>Create API key</strong>.</li>
+      <li><strong>Copy it:</strong> copy the key straight away and keep it private, like a password.</li>
+    </ol>
+    <h2 class="help-h2">Use it with ArtificialMoralAgent</h2>
+    <ol>
       <li>On the computer running ArtificialMoralAgent, run <code>ama init</code> and paste the key when asked.
           (Or add <code>GEMINI_API_KEY=your-key</code> to <code>~/.ama/.env</code>.) Then restart <code>ama serve</code>.</li>
       <li>Check it with <code>ama doctor</code>: the <em>model reachable</em> and <em>embeddings</em> lines should say PASS.</li>
     </ol>
+    <h2 class="help-h2">Good to know</h2>
+    <ul class="help-list">
+      <li><strong>Cost:</strong> free. The free tier needs no credit card or billing account.</li>
+      <li><strong>Limits:</strong> per-minute and daily request and token limits. The free tier is meant for prototyping and testing, not heavy production use.</li>
+    </ul>
     <div class="help-note">
-      <strong>Privacy on the free tier:</strong> Google may use data sent through free-tier keys to improve its products.
-      Avoid putting confidential or identifying details into dilemmas while using a free key, or use a paid key, or
-      the <em>local</em> preset with Ollama, where nothing leaves your computer. Free-tier use is rate-limited, not billed.
+      <strong>Privacy on the free tier:</strong> Google may use free-tier inputs and outputs to improve its models.
+      Avoid putting sensitive or private details into dilemmas while using a free key. For private use, use a paid key,
+      or the <em>local</em> preset with Ollama, where nothing leaves your computer.
     </div>
+    <p class="help-video">Prefer to watch? <a class="ama-link" href="https://www.youtube.com/watch?v=prrb0hsfI60" target="_blank" rel="noopener">A short video shows how to create a free key in Google AI Studio.</a></p>
     <div class="help-actions">
-      <a class="glass-btn primary-btn" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Open Google AI Studio</a>
-      <a class="glass-btn" href="../">Back to ArtificialMoralAgent</a>
+      <a class="glass-btn primary-btn" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Open Google AI Studio</a>
+      <a class="ama-link" style="align-self:center" href="../">Back to ArtificialMoralAgent</a>
     </div>
   </div>
 </div>
