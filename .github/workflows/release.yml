@@ -1,32 +1,81 @@
 name: Release
+
+# Pushing a tag such as v3.0.1 builds the package once, then:
+#   - creates the GitHub Release with the wheel and source archive attached;
+#   - pushes the Docker image to ghcr.io;
+#   - uploads to PyPI, but only after PyPI is set up (see "Turning on PyPI" below).
+#
+# Turning on PyPI (once):
+#   1. On pypi.org, add a pending publisher: owner tgreenhaw5, repository ArtificialMoralAgent,
+#      workflow release.yml, environment pypi.
+#   2. Set the repository variable PUBLISH_TO_PYPI to true (Settings > Secrets and variables > Actions >
+#      Variables), or run: gh variable set PUBLISH_TO_PYPI --body true
+#   3. To publish a release that already exists: Actions > Release > Run workflow, enter its tag.
+#      New tags are then published to PyPI automatically.
+
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to publish to PyPI (for example v3.0.1)"
+        required: true
+
 permissions:
-  contents: write
-  id-token: write      # PyPI trusted publishing (no stored token)
-  packages: write
+  contents: read
+
 jobs:
-  pypi:
+  build:
     runs-on: ubuntu-latest
-    environment: pypi
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
       - uses: actions/setup-python@v6
         with: { python-version: "3.12" }
       - run: pip install build && python -m build
-      - uses: pypa/gh-action-pypi-publish@release/v1
-      - uses: softprops/action-gh-release@v2
-        with: { files: "dist/*", generate_release_notes: true }
-  docker:
+      - uses: actions/upload-artifact@v6
+        with: { name: dist, path: dist/ }
+
+  github-release:
+    if: github.event_name == 'push'
+    needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with: { name: dist, path: dist/ }
+      - uses: softprops/action-gh-release@v3
+        with: { files: "dist/*", generate_release_notes: true }
+
+  docker:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v6
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         with: { registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}" }
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: .
           file: docker/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/artificialmoralagent:${{ github.ref_name }},ghcr.io/${{ github.repository_owner }}/artificialmoralagent:latest
+
+  pypi:
+    # Skipped (not failed) until PyPI is set up and PUBLISH_TO_PYPI is true; always runs from "Run workflow".
+    if: github.event_name == 'workflow_dispatch' || vars.PUBLISH_TO_PYPI == 'true'
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write      # PyPI trusted publishing: no stored password or token
+    steps:
+      - uses: actions/download-artifact@v7
+        with: { name: dist, path: dist/ }
+      - uses: pypa/gh-action-pypi-publish@release/v1

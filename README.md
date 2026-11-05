@@ -20,10 +20,12 @@ ask for an ethics check before they act.
 ## Quick start (Windows, macOS, Linux)
 
 ```bash
-pipx install artificialmoralagent      # or: uv tool install artificialmoralagent
+pipx install git+https://github.com/tgreenhaw5/ArtificialMoralAgent   # or: uv tool install git+https://…
 ama init                               # pick a preset, paste a free Gemini key, create your admin login
 ama serve                              # http://localhost:8410  ·  API docs at /docs
 ```
+
+Once the package is on PyPI, `pipx install artificialmoralagent` works too.
 
 There is no database to set up. AMA stores everything in SQLite with vector search in `~/.ama`. Use
 Postgres + pgvector when you serve many people (see [Self-hosting](docs/self-hosting.md)).

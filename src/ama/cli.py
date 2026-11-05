@@ -109,10 +109,7 @@ def cmd_serve(a):
     from .config import get_settings
     s = get_settings()
     from .api import create_app
-    app = create_app()
-    if a.mcp:
-        from .mcp_server import mcp
-        app.mount("/mcp", mcp.streamable_http_app())
+    app = create_app(mcp_http=a.mcp)
     host, port = a.host or s.host, a.port or s.port
     print(f"ArtificialMoralAgent on http://{'localhost' if host in ('127.0.0.1', '0.0.0.0') else host}:{port} "
           f"(API docs at /docs){' · MCP at /mcp' if a.mcp else ''}")
@@ -162,6 +159,9 @@ def cmd_doctor(a):
 
 def cmd_mcp(a):
     from .mcp_server import run
+    if a.http and a.host not in ("127.0.0.1", "localhost", "::1"):
+        print("Warning: `ama mcp --http` has no API key check. To serve MCP to other machines, use "
+              "`ama serve --mcp`, which requires an API key.", file=sys.stderr)
     run(http=a.http, host=a.host, port=a.port)
 
 

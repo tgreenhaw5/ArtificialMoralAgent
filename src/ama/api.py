@@ -6,6 +6,7 @@ resources instead of an analysis.
 """
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import os
@@ -68,11 +69,58 @@ class KeyRequest(BaseModel):
 # ---------------------------------------------------------------------------
 # App
 # ---------------------------------------------------------------------------
-def create_app() -> FastAPI:
+class McpKeyGate:
+    """MCP over HTTP spends the host's model key, so it needs an AMA API key (Authorization: Bearer ama_…)
+    and obeys the per-minute rate limit. Local MCP over stdio (`ama mcp`) is unaffected."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            headers = {k.decode("latin-1").lower(): v.decode("latin-1") for k, v in scope.get("headers", [])}
+            auth = headers.get("authorization", "")
+            tok = auth[7:].strip() if auth.lower().startswith("bearer ") else headers.get("x-ama-key")
+            key = security.check_key(tok)
+            if not key:
+                return await self._reply(send, 401, "MCP over HTTP needs an API key: send Authorization: Bearer "
+                                                    "ama_… (create one with `ama keys create`).")
+            if not security.rate_ok(f"key:{key['key_id']}"):
+                return await self._reply(send, 429, "Too many requests; please slow down.")
+        await self.app(scope, receive, send)
+
+    @staticmethod
+    async def _reply(send, status, detail):
+        body = json.dumps({"detail": detail}).encode()
+        headers = [(b"content-type", b"application/json"), (b"content-length", str(len(body)).encode())]
+        if status == 401:
+            headers.append((b"www-authenticate", b"Bearer"))
+        await send({"type": "http.response.start", "status": status, "headers": headers})
+        await send({"type": "http.response.body", "body": body})
+
+
+def create_app(mcp_http: bool = False) -> FastAPI:
+    """The web app and REST API. With mcp_http=True, also MCP (Streamable HTTP) at /mcp, behind an API key."""
     s = get_settings()
     s.ensure_secret()
     get_store()
-    app = FastAPI(title="ArtificialMoralAgent", version=__version__, root_path=s.root_path,
+    lifespan = mcp_app = None
+    if mcp_http:
+        from .mcp_server import mcp as mcp_server
+        mcp_server.settings.streamable_http_path = "/"        # served at /mcp/ once mounted at /mcp
+        mcp_server._session_manager = None                   # a session manager runs once; new app, new one
+        # The library's localhost-only Host check would reject Docker and reverse-proxy (IIS) requests. The
+        # API key gate below is what protects this endpoint; a web page can't supply the key (no CORS here).
+        from mcp.server.transport_security import TransportSecuritySettings
+        mcp_server.settings.transport_security = TransportSecuritySettings(enable_dns_rebinding_protection=False)
+        mcp_app = mcp_server.streamable_http_app()
+
+        @contextlib.asynccontextmanager
+        async def lifespan(_app):
+            async with mcp_server.session_manager.run():     # a mounted app's own startup never runs
+                yield
+
+    app = FastAPI(title="ArtificialMoralAgent", version=__version__, root_path=s.root_path, lifespan=lifespan,
                   description="Structured ethical analysis across four frameworks and a Chief Moral Arbiter. "
                               + safety.DISCLAIMER)
     if s.cors_origins:
@@ -91,7 +139,23 @@ def create_app() -> FastAPI:
 
     _routes(app)
     app.mount("/static", StaticFiles(directory=str(STATIC)), name="static")
+    if mcp_app is not None:
+        app.mount("/mcp", McpKeyGate(mcp_app))
+        app.add_middleware(_McpNoSlash)
+
     return app
+
+
+class _McpNoSlash:
+    """Clients use both /mcp and /mcp/. Serve both directly: a redirect breaks clients that won't re-POST."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and scope["path"] == "/mcp":
+            scope = dict(scope, path="/mcp/", raw_path=b"/mcp/")
+        await self.app(scope, receive, send)
 
 
 def client_ip(request: Request) -> str:

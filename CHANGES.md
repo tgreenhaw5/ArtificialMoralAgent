@@ -1,7 +1,16 @@
 # Changes
 
-## 3.0.1 (2026-11-02)
+## 3.0.1 (2026-11-05)
 
+- **MCP over HTTP is protected and fixed.** `ama serve --mcp`, which is also the Docker image's default
+  command, now serves MCP at both `/mcp` and `/mcp/`. Previously it returned errors there. It now requires an
+  AMA API key (`Authorization: Bearer ama_…`) and applies the per-minute rate limit, so nobody can spend the
+  host's model key through it. Local `ama mcp` (stdio) is unchanged.
+- **Release workflow.** The GitHub Release and the Docker image publish on their own. PyPI publishing is
+  optional: turn it on later with the `PUBLISH_TO_PYPI` repository variable, or use *Run workflow* to
+  publish an existing tag.
+- **CI.** The secret scan now covers the full history and works after force pushes. CI has a *Run workflow*
+  button and uses the Node 24 versions of GitHub's actions.
 - **Delete from the review queue.** Each entry in *Submitted Moral Dilemmas* now has a **Delete** button.
   The first click asks for confirmation, and the second permanently removes the dilemma, its analysis and
   its search vector. It works for pending and evaluated entries and is available to signed-in admins only.
